@@ -1028,8 +1028,11 @@
 <!-- Suicidal Risk Alert Box -->
 <div id="suicide-risk-alert" class="alert-box" style="display: none;">
   <p><strong>⚠️ Suicidal Risk Detected!</strong> Please seek immediate help from a professional.</p>
-  <button onclick="showPage('sentiment-analysis'); closeAlert()">Close</button>
+  <p>If you're struggling, please reach out to a trusted friend, family member, or a mental health professional. You are not alone. 💙</p>
+  <button onclick="showPage('sentiment-analysis'); closeAlert()">View Support</button>
+  <button onclick="closeAlert()">Dismiss</button>
 </div>
+
 
    <!-- Footer -->
 <footer>
@@ -1362,6 +1365,56 @@ Please provide a empathetic explanation of these results along with supportive a
   });
 });
 function getAnalysisResponse(userMessage) {
+    // Define high-risk suicidal keywords
+    const suicideKeywords = ["die", "kill", "suicide", "dead", "hurt myself", "end it", "no way out", "self harm", "take my life"];
+
+    // Define positive/happy keywords to ensure false alarms are prevented
+    const happinessKeywords = ["happy", "joy", "excited", "relieved", "grateful", "peaceful", "amazing", "great"];
+
+    // Check for high-risk words (exact match)
+    const containsSuicideWords = suicideKeywords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(userMessage));
+
+    // Check if the message contains any happiness-related words
+    const containsHappinessWords = happinessKeywords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(userMessage));
+
+    // If suicidal words exist and happiness words **don't exist**, override emotion detection
+    let detectedEmotion = "Neutral";  // Default emotion
+    let suicideRiskDetected = false;
+
+    if (containsSuicideWords && !containsHappinessWords) {
+        console.log("⚠️ High-risk suicidal words detected, overriding emotion detection!");
+
+        detectedEmotion = "Suicidal"; // Override detected emotion
+        suicideRiskDetected = true;
+
+        // Update UI with high-risk alert
+        document.getElementById("sentiment-result").innerText = `Emotion: ${detectedEmotion}`;
+        document.getElementById("risk-result").innerText = "Alert: Suicidal risk detected!";
+        document.getElementById("risk-result").style.color = "red";
+        document.getElementById("suicide-risk-alert").style.display = 'block'; // Show alert immediately
+
+        // Provide an emergency AI response
+        const emergencyPrompt = `
+        The user has entered a message containing suicidal language. Please respond with deep empathy, offering immediate support and crisis resources. Keep the message warm, non-judgmental, and reassuring.
+        User Message: "${userMessage}"
+        `;
+
+        return fetch("http://127.0.0.1:4000/chatbot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: emergencyPrompt })
+        })
+        .then(res => res.json())
+        .then(analysisBotData => {
+            document.getElementById("analysisExplanation").value = analysisBotData.response || "No explanation available.";
+        })
+        .catch(error => {
+            console.error("Analysis Error:", error);
+            document.getElementById("analysisExplanation").value = "Error retrieving explanation: " + error.message;
+        });
+    }
+
+    // If no high-risk words were detected, proceed with normal AI sentiment analysis
     fetch("http://127.0.0.1:4000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1369,30 +1422,32 @@ function getAnalysisResponse(userMessage) {
     })
     .then(response => response.json())
     .then(data => {
-        // Update analysis results with the detected emotion and suicidal risk
-        document.getElementById("sentiment-result").innerText =
-            `Emotion: ${data.emotion}`;
+        // Use detected emotion unless overridden
+        if (!suicideRiskDetected) {
+            detectedEmotion = data.emotion;
+        }
 
-        if (data.suicide_risk) {
+        document.getElementById("sentiment-result").innerText = `Emotion: ${detectedEmotion}`;
+        
+        if (data.suicide_risk || suicideRiskDetected) {
             document.getElementById("risk-result").innerText = "Alert: Suicidal risk detected!";
             document.getElementById("risk-result").style.color = "red";
-
-            // Show alert box if suicidal risk is detected
-            document.getElementById("suicide-risk-alert").style.display = 'block'; // Show alert
+            document.getElementById("suicide-risk-alert").style.display = 'block';
         } else {
             document.getElementById("risk-result").innerText = "No suicidal risk detected.";
             document.getElementById("risk-result").style.color = "green";
         }
 
-        // Build a meta prompt using analysis data
+        // Create AI meta prompt for response generation
         const metaPrompt = `
-User Message: "${userMessage}"
-Detected Emotion: ${data.emotion}.
-Suicidal Risk: ${data.suicide_risk ? 'Detected' : 'Not detected'}.
-Please provide a empathetic explanation of these results along with supportive advice, if the user emotion is something not positive then give a list of many activities to do to cheer yourself up depending on the emotion. remove any * from the text make it user friendly add emojis and all u can exceed the limit of 80 words, i want a very detialed answer from you describing each activity in detail, listed properly. 
+        User Message: "${userMessage}"
+        Detected Emotion: ${detectedEmotion}.
+        Suicidal Risk: ${data.suicide_risk || suicideRiskDetected ? 'Detected' : 'Not detected'}.
+        Please provide a compassionate explanation of these results with detailed, supportive advice. 
+        If the user's emotion is negative, suggest many activities to uplift them, described in an engaging way with emojis.
+        The response should be structured properly with clear lists and explanations.
         `;
 
-        // Call the chatbot endpoint with the meta prompt
         return fetch("http://127.0.0.1:4000/chatbot", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1401,11 +1456,7 @@ Please provide a empathetic explanation of these results along with supportive a
     })
     .then(res => res.json())
     .then(analysisBotData => {
-        if (analysisBotData.response) {
-            document.getElementById("analysisExplanation").value = analysisBotData.response;
-        } else {
-            document.getElementById("analysisExplanation").value = "No explanation available.";
-        }
+        document.getElementById("analysisExplanation").value = analysisBotData.response || "No explanation available.";
     })
     .catch(error => {
         console.error("Analysis Error:", error);
