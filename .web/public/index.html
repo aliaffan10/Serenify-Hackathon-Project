@@ -322,7 +322,7 @@
       .sections section:hover { transform: translateY(-5px); }
       .sections section h3 {
         margin-bottom: 10px;
-        color: var(--secondary-color);
+        color: var(--primary-color);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -709,15 +709,15 @@
       <button id="bot1-btn" onclick="showPage('dashboard')"><strong>Explore Now</strong></button>
 
       <br><br>
-      <button id="bot1-btn" onclick="showPage('chatbot')">Talk to <strong>HealthBot+</strong></button>
+      <button id="bot1-btn" onclick="showPage('chatbot')">Talk to <strong>Seren</strong></button>
     </div>
     <div class="sections" style="display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-      <!-- HealthBot+ Section -->
+      <!-- Seren Section -->
       <section id="healthbot-landing" style="flex: 1; text-align: center; min-width: 250px;">
-        <img src="clipart-healthbot.png" alt="HealthBot+ Clipart" style="width: 100px; height: auto; margin-bottom: 10px;">
-        <h3><strong>HealthBot+</strong></h3>
+        <img src="clipart-healthbot.png" alt="Seren Clipart" style="width: 100px; height: auto; margin-bottom: 10px;">
+        <h3><strong>Seren</strong></h3>
         <p>
-          Discover <strong>HealthBot+</strong>—your personal assistant for mental health. Engage in insightful conversations and receive tailored guidance anytime you need support.
+          Discover <strong>Seren</strong>—your personal assistant for mental health. Engage in insightful conversations and receive tailored guidance anytime you need support.
         </p>
       </section>
 
@@ -746,7 +746,7 @@
 
       <!-- Chatbot Page -->
       <section id="chatbot" class="page-section">
-        <h2>HealthBot+</h2>
+        <h2>Your Personal Mental Health and Well-being Assistant - Seren</h2>
         <div id="chat-container">
           <div id="chat-window">
             <!-- Chat messages will appear here -->
@@ -1107,7 +1107,7 @@
         }
       }
       function getBotResponse(userMessage) {
-        addChatMessage("HealthBot+", "Typing...");
+        addChatMessage("Seren", "Typing...");
         fetch("http://127.0.0.1:4000/chatbot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1117,14 +1117,14 @@
           .then(data => {
             removeLastBotMessage();
             if (data.response) {
-              addChatMessage("HealthBot+", data.response);
+              addChatMessage("Seren", data.response);
             } else {
-              addChatMessage("HealthBot+", "I'm sorry, something went wrong. Please try again.");
+              addChatMessage("Seren", "I'm sorry, something went wrong. Please try again.");
             }
           })
           .catch(error => {
             removeLastBotMessage();
-            addChatMessage("HealthBot+", "Error: " + error.message);
+            addChatMessage("Seren", "Error: " + error.message);
             console.error("Chatbot Error:", error);
           });
       }
