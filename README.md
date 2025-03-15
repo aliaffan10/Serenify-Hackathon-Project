@@ -169,6 +169,6 @@ Once both servers are running:
 
 ## 📜 License
 
-This project is open-source. Add your license details here.
+This project is open-source.
 
 🚀 You’re now ready to run Serenify! If you encounter issues, check the Troubleshooting section or reach out to the project maintainers at aliaffanvirk@gmail.com
